@@ -1,0 +1,34 @@
+﻿<#@ template language="C#" hostspecific="true" #>
+<#@ assembly name="要変更\unity-master-manager\Library\ScriptAssemblies\CommonAssembly.dll" #>
+<#@ assembly name="要変更\unity-master-manager\Library\ScriptAssemblies\EditorAssembly.dll" #>
+<#@ assembly name="要変更\unity-master-manager\Assets\Editor\Plugins\Json~\Newtonsoft.Json.dll" #>
+<#@ import namespace="Newtonsoft.Json" #>
+<#@ parameter name="jsonStr" type="System.String"#>
+using MasterMemory;
+using MessagePack;
+
+<#
+    TableDefinition table = JsonConvert.DeserializeObject<TableDefinition>(jsonStr);
+#>
+[MemoryTable("<#= table.TableName #>"), MessagePackObject(true)]
+public class <#= table.Prefix #><#= table.TableName.ToUpperFirstLetter() #> {
+    public <#= table.Prefix #><#= table.TableName.ToUpperFirstLetter() #>() {}
+<#
+    foreach (var column in table.Columns) {
+        foreach (var index in column.Indexes) {
+            if (index.IsPk) {
+#>
+    [PrimaryKey(<#= index.KeyOrder #>)]
+<#
+            } else {
+#>
+    [SecondaryKey(<#= index.Id #>, <#= index.KeyOrder #>)<#= index.IsUnique ? ", NonUnique" : "" #>]
+<#
+            }
+        }
+#>
+    public <#= column.DataTypeCs #> <#= column.Name.ToUpperFirstLetter() #> { get; private set; }
+<#
+    }
+#>
+}

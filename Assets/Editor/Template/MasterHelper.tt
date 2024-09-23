@@ -1,0 +1,30 @@
+﻿<#@ template language="C#" hostspecific="true" #>
+<#@ assembly name="C:\Users\24871\work\unity\master-manager\Library\ScriptAssemblies\CommonAssembly.dll" #>
+<#@ assembly name="C:\Users\24871\work\unity\master-manager\Library\ScriptAssemblies\EditorAssembly.dll" #>
+<#@ assembly name="C:\Users\24871\work\unity\master-manager\Assets\Editor\Plugins\Json~\Newtonsoft.Json.dll" #>
+<#@ import namespace="Newtonsoft.Json" #>
+<#@ parameter name="jsonStr" type="System.String"#>
+<#@ import namespace="System.Collections.Generic" #>
+<#
+    List<TableDefinition> tableList = JsonConvert.DeserializeObject<List<TableDefinition>>(jsonStr);
+#>
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+
+public static class MasterHelper {
+    public delegate object Constructor();
+    public static Constructor GetConstructor(string tableName) {
+        return tableName switch {
+<#
+    foreach (var table in tableList) {
+#>        
+            "<#= table.TableName #>" => () => new <#= table.Prefix + table.TableName.ToUpperFirstLetter() #>(),
+<#
+    }
+#>
+            
+            _ => throw new ArgumentOutOfRangeException(nameof(tableName), tableName, null)
+        };
+    }   
+}
